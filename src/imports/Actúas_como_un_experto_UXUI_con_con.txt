@@ -1,0 +1,81 @@
+Actúas como un experto UX/UI con conocimientos de desarrollo frontend. Tengo un prototipo funcional avanzado de TuristGo en Figma Make. Debe mantener todo lo que ya funciona correctamente. Solo necesito aplicar las siguientes correcciones y añadir la HU faltante, sin modificar la estructura general ni introducir flujos alternativos (excepto donde se indique explícitamente para validaciones de cruce de horarios).
+
+A continuación, las tareas en orden:
+
+### 1. Añadir HU-55 – Calificación y reseña de tour completado (si no existe)
+- Rol: Turista autenticado.
+- Punto de entrada: Panel del turista → sección "Mis reservas" → reserva con estado "Completada" → botón "Calificar tour".
+- Flujo principal: Mostrar pantalla con selector de 1 a 5 estrellas (clic en estrellas), campo de texto opcional para reseña, botón "Enviar calificación". Al enviar, mostrar mensaje "¡Gracias por tu calificación!". Simular que el promedio del tour se actualiza en el catálogo (mostrar un toast o mensaje adicional). Solo una calificación por reserva: después de calificar, el botón desaparece o se deshabilita.
+- No implementar: edición de calificación, eliminación, moderación.
+
+### 2. Corregir HU-25 – Desactivación temporal de servicio (agregar reactivación)
+- Actualmente: solo permite desactivar. Se debe añadir la opción de volver a activar.
+- Rol: Agencia.
+- Punto de entrada: Panel de agencia → "Mis servicios" → sobre un tour **inactivo**, mostrar botón "Activar servicio".
+- Flujo: Al hacer clic en "Activar servicio", mostrar diálogo de confirmación. Confirmar → el tour cambia a estado "Activo" y aparece nuevamente en el catálogo público. Mostrar mensaje "Servicio activado".
+- El tour activado debe cumplir las reglas (tener guía asignado con certificado vigente). Para el flujo principal, asume que sí las cumple.
+- Mantener el botón "Desactivar servicio" para tours activos (ya existente).
+
+### 3. Corregir HU-17 – Creación de tour (asegurar que aparezca en el panel)
+- Problema: el tour se crea pero no se muestra en el listado "Mis servicios".
+- Solución: Al hacer clic en "Guardar servicio", además de mostrar el mensaje de éxito, el nuevo tour debe aparecer **inmediatamente** en el panel de servicios de la agencia (lista actualizada). Usar los mismos componentes visuales que para tours existentes.
+- No se requieren cambios adicionales en el formulario de creación.
+
+### 4. Corregir HU-35 – Reserva de tour (consistencia de fechas y permitir reservas)
+- Problemas actuales:
+  - Fechas distintas entre catálogo y detalle del tour.
+  - No permite reservar ningún tour por cruce de fechas (demasiado restrictivo).
+- Solución:
+  - Asegurar que la fecha y hora del tour que se muestra en el catálogo (tarjeta) sea la misma que aparece en la pantalla de detalle y en el selector de horarios.
+  - Cada tour debe tener al menos **dos horarios disponibles** (ej: "9:00 AM - 1:00 PM" y "2:00 PM - 6:00 PM") con fechas coherentes (todas futuras, mismo día o días distintos).
+  - **Regla de cruce**: Solo debe existir **un único tour de ejemplo** que genere conflicto con otro tour predefinido (para demostrar HU-38). El resto de tours (la mayoría) deben poderse reservar sin ningún conflicto, incluso si el turista ya tiene otras reservas.
+  - Para ello, en los datos de ejemplo del prototipo:
+    - Crear un tour "Tour Centro Histórico" con horario 9am-1pm.
+    - Crear otro tour "Tour Museo" con horario 11am-3pm (este genera conflicto con el anterior).
+    - Todos los demás tours deben tener horarios que no se solapen entre sí ni con los dos anteriores (ej: 2pm-6pm, 8am-12pm, etc.).
+  - El selector de horario debe estar disponible en la pantalla de detalle. El turista elige un horario y hace clic en "Confirmar reserva". Si el horario elegido **no** genera conflicto con reservas existentes del turista, la reserva se confirma, se descuenta un cupo y se genera número único.
+  - Si el horario elegido genera conflicto (solo ocurre con los tours específicos mencionados), entonces NO se confirma la reserva y se muestra la alerta de HU-38 (ver punto 6 más abajo). Este es el único caso de "flujo alternativo" permitido porque es parte de la HU-38.
+
+### 5. Corregir HU-43 – Cambio de fecha de reserva (visualización y validación de cruce)
+- Problema: el cambio de fecha no se refleja en el panel del turista.
+- Solución:
+  - En el detalle de una reserva confirmada, agregar botón "Cambiar fecha" (si aplica según regla de +24h, asumir que se cumple).
+  - Al hacer clic, mostrar un selector de nuevas fechas/horarios disponibles para el **mismo tour** (misma lógica que en reserva).
+  - Validación de cruce de horarios:
+    - Si la nueva fecha/hora NO genera conflicto con otras reservas activas del turista, se actualiza la reserva (fecha, hora, cupos: libera el anterior y descuenta uno del nuevo). Mostrar mensaje "Fecha actualizada correctamente". En el panel "Mis reservas", la reserva debe mostrar la nueva fecha/hora.
+    - Si la nueva fecha/hora SÍ genera conflicto, mostrar alerta similar a HU-38: "Conflicto de horario detectado. No puedes cambiar a esta fecha porque se solapa con [nombre del tour en conflicto]". No se realiza el cambio.
+  - No implementar otras validaciones (como anticipación mínima, solo asumir que se cumple).
+
+### 6. HU-38 – Alerta de cruce de horarios (solo cuando aplica)
+
+Esta HU ya debe existir en tu prototipo, pero se debe asegurar que su comportamiento sea correcto:
+
+- **Condición de activación**: La alerta SOLO se muestra cuando el turista intenta reservar (HU-35) o cambiar la fecha de una reserva (HU-43) a un horario que **realmente se solape** con otra reserva activa que el turista ya tenga confirmada.
+- **Si NO hay conflicto** (es decir, el nuevo horario no se superpone con ninguna reserva existente):
+  - No se muestra ninguna alerta.
+  - La reserva se confirma (o la fecha se actualiza) normalmente.
+  - Se descuenta el cupo (si aplica) y se genera el número de reserva.
+- **Si SÍ hay conflicto** (el nuevo horario se solapa con otra reserva activa del mismo turista):
+  - Se muestra una alerta (modal o banner) con el mensaje:  
+    *"Conflicto de horario detectado. Ya tienes reservado: [nombre del tour en conflicto] de [hora inicio] a [hora fin]. No puedes confirmar esta reserva"*.
+  - La reserva NO se procesa (no se descuenta cupo, no se genera número).
+  - El usuario puede cerrar la alerta y elegir otro horario.
+
+**Importante**: El prototipo debe incluir al menos un par de tours/horarios que generen conflicto (ejemplo: Tour Centro 9am-1pm y Tour Museo 11am-3pm) y otros tours/horarios que NO generen conflicto, para demostrar ambos comportamientos. La alerta solo aparece en el primer caso.
+
+### 7. Corregir HU-49 – Histórico de facturas de la agencia (añadir filtros)
+- Actualmente: muestra listado de facturas, pero sin filtros.
+- Añadir en la parte superior del listado:
+  - Un filtro por **estado** (Emitida, Anulada) – selector desplegable.
+  - Un filtro por **rango de fechas** (dos selectores de fecha: desde – hasta).
+  - Botón "Aplicar filtros".
+- Al aplicar filtros, el listado debe mostrar solo las facturas que cumplan ambas condiciones (estado seleccionado y fecha dentro del rango). Si no hay resultados, mostrar "No hay facturas en este rango".
+- No se requiere implementar paginación ni exportación.
+
+### Consideraciones generales:
+- Mantener todos los estilos, colores, tipografías y componentes del prototipo actual.
+- No agregar mensajes de error por campos vacíos, formatos inválidos, duplicados, etc. (excepto las alertas de cruce de horarios explícitamente indicadas).
+- No modificar la navegación general ni las pantallas que ya funcionan correctamente fuera de estas tareas.
+- Para las validaciones de cruce de horarios (HU-38 integrada), simular los datos de ejemplo mencionados en el punto 4.
+
+Entregable: prototipo actualizado con HU-55 añadida, y las correcciones funcionales en HU-17, HU-25, HU-35, HU-43 y HU-49, manteniendo el resto intacto.

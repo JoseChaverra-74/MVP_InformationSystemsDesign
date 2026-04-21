@@ -1,0 +1,77 @@
+Actúas como un experto UX/UI. No quiero modificar la estructura existente ni refinar lo que ya está hecho. Solo necesito AÑADIR las siguientes 12 funcionalidades (cada una corresponde a una Historia de Usuario). Para cada una, implementa ÚNICAMENTE el flujo principal (happy path), sin ningún flujo alternativo (no muestres mensajes de error, no valides formatos incorrectos, no bloquees por condiciones excepcionales). Asume que todos los datos ingresados son válidos y que las condiciones previas se cumplen.
+
+PRIMERO: Actualiza la HU-35 existente (Reserva de tour) para que el turista pueda seleccionar o modificar el horario del tour al momento de reservar. Actualmente, el horario es fijo o no se puede elegir, lo que impide simular cruce de horarios. Implementa lo siguiente:
+- En la pantalla de detalle del tour, agrega un selector (lista desplegable o botones de opción) que muestre al menos dos horarios disponibles para el mismo tour (ej: "9:00 AM - 1:00 PM" y "2:00 PM - 6:00 PM").
+- Cada horario debe tener su propia verificación de cupos (simulada, sin validación de error). El turista selecciona un horario antes de confirmar la reserva.
+- La reserva creada guarda el horario elegido. Esto permitirá que un turista pueda tener dos reservas con horarios que se solapen (ej: uno de 9am-1pm y otro de 11am-3pm) para que la HU-38 (alerta de cruce) sea demostrable.
+- Mantén el resto del flujo de reserva igual (resumen, botón confirmar, generación de número, descuento de cupo). No implementes validaciones de error (como "cupo lleno" o "cruce inválido" aquí, eso solo se usará en HU-38). El flujo principal feliz debe permitir reservar cualquier horario sin restricciones, para que luego en HU-38 se vea la alerta cuando haya conflicto.
+
+SEGUNDO: Una vez actualizada HU-35, añade las siguientes 12 HU (solo flujo principal, sin flujos alternativos, sin mensajes de error ni validaciones bloqueantes). Usa los mismos estilos, colores y componentes del prototipo actual. Respeta los puntos de entrada indicados.
+
+IMPORTANTE: La HU-38 (alerta de cruce de horarios) debe funcionar sobre la nueva versión de HU-35. Para probarlo en el prototipo, asume que el turista ya tiene una reserva confirmada en un horario (ej: de 9am a 1pm) e intenta reservar otro tour (o el mismo) en un horario que se solapa (ej: de 11am a 3pm). Entonces se muestra la alerta descrita y la reserva no se confirma. El resto de HU no dependen de esta modificación.
+
+A continuación, las 12 HU a añadir:
+
+1. HU-02 – Registro de agencia turística
+   - Rol: Agencia (nuevo usuario no registrado)
+   - Punto de entrada: Pantalla de login → botón "Registrar agencia"
+   - Flujo: Mostrar formulario con campos: NIT, nombre comercial, correo corporativo, teléfono, descripción. Incluir un botón para subir un archivo (documento de constitución o cámara de comercio). Botón "Enviar solicitud". Al enviar, mostrar mensaje "Tu solicitud fue enviada. Recibirás respuesta en 24-48 horas". No implementar la notificación al administrador (es interna, no visible en UI). No validar formato de NIT ni duplicados.
+
+2. HU-12 – Actualización de certificado de guía por la agencia
+   - Rol: Agencia (autenticada)
+   - Punto de entrada: Panel de la agencia → sección "Mis guías" → seleccionar un guía → botón "Actualizar certificado"
+   - Flujo: Mostrar formulario con: campo para subir nuevo archivo de certificado, campo fecha de vencimiento (selector de fecha). Botón "Guardar cambios". Al guardar, mostrar mensaje "Certificado actualizado. El guía ahora está disponible". El estado del guía cambia a "Disponible". (No mostrar el archivo anterior ni su archivado, solo indicar éxito).
+
+3. HU-15 – Recuperación de contraseña
+   - Rol: Cualquier usuario (turista, agencia, guía) no autenticado
+   - Punto de entrada: Pantalla de login → enlace "¿Olvidaste tu contraseña?"
+   - Flujo: Mostrar pantalla con campo "Correo electrónico" y botón "Enviar enlace de recuperación". Al enviar, mostrar mensaje "Si este correo está registrado, recibirás un enlace para restablecer tu contraseña". Luego, simular el envío: al hacer clic en un botón "Simular enlace recibido" (porque en prototipo no hay correo real) se abre una nueva pantalla con formulario para nueva contraseña y confirmación. Botón "Restablecer contraseña". Al confirmar, mostrar mensaje "Contraseña actualizada. Ahora puedes iniciar sesión". (No implementar token ni expiración visual, solo el flujo de pantallas).
+
+4. HU-23 – Edición de servicio existente
+   - Rol: Agencia
+   - Punto de entrada: Panel de agencia → sección "Mis servicios" → seleccionar un tour → botón "Editar"
+   - Flujo: Mostrar formulario precargado con campos editables: descripción, precio, punto de encuentro, fotos (subir nuevas), cupos máximos. Botón "Guardar cambios". Al guardar, mostrar mensaje "Servicio actualizado correctamente". (No validar que los cupos no sean menores a reservas existentes).
+
+5. HU-25 – Desactivación temporal de servicio
+   - Rol: Agencia
+   - Punto de entrada: Panel de agencia → sección "Mis servicios" → sobre un tour activo, botón "Desactivar servicio"
+   - Flujo: Al hacer clic, mostrar diálogo de confirmación. Confirmar → el tour cambia a estado "Inactivo" y desaparece del catálogo público (simular que ya no se ve en la vista de exploración de turistas). En el panel de agencia, el tour aparece con etiqueta "Inactivo". Mostrar mensaje "Servicio desactivado". (No validar si tiene reservas futuras).
+
+6. HU-55 – Calificación y reseña de tour completado
+   - Rol: Turista autenticado
+   - Punto de entrada: Panel del turista → sección "Mis reservas" → reserva con estado "Completada" → botón "Calificar tour"
+   - Flujo: Mostrar pantalla con selector de 1 a 5 estrellas (clic en estrellas), campo de texto opcional para reseña, botón "Enviar calificación". Al enviar, mostrar mensaje "¡Gracias por tu calificación!". Simular que el promedio del tour se actualiza en el catálogo (puedes mostrar un toast o mensaje adicional). Solo una calificación por reserva (si ya calificó, el botón desaparece).
+
+7. HU-27 – Registro de vehículo
+   - Rol: Agencia
+   - Punto de entrada: Panel de agencia → sección "Flota de vehículos" → botón "Registrar vehículo"
+   - Flujo: Mostrar formulario con campos: placa, marca, modelo, año, capacidad de pasajeros, foto opcional. Botón "Registrar vehículo". Al guardar, mostrar mensaje "Vehículo registrado correctamente" y el vehículo aparece en el listado de flota con estado "Disponible". (No validar formato de placa ni duplicados).
+
+8. HU-30 – Consulta de datos de transporte por el guía
+   - Rol: Guía turístico autenticado
+   - Punto de entrada: Panel del guía → sección "Mis tours" → seleccionar un tour asignado que ya tenga vehículo vinculado
+   - Flujo: En el detalle del tour, mostrar claramente: placa, marca, modelo y capacidad del vehículo. Si el tour no tiene vehículo (para este happy path asume que sí lo tiene), no mostrar mensaje de ausencia. Solo mostrar los datos.
+
+9. HU-34 – Eliminación de vehículo
+   - Rol: Agencia
+   - Punto de entrada: Panel de agencia → sección "Flota de vehículos" → sobre un vehículo que no tiene tours futuros asignados, botón "Eliminar"
+   - Flujo: Al hacer clic, mostrar diálogo de confirmación. Confirmar → el vehículo desaparece del listado de flota. Mostrar mensaje "Vehículo eliminado". (No validar si tiene tours, asume que no tiene).
+
+10. HU-38 – Alerta de cruce de horarios al intentar reservar
+    - Rol: Turista autenticado
+    - Punto de entrada: Catálogo de tours → seleccionar un tour → botón "Reservar" → pero el turista ya tiene otra reserva activa cuyo horario se superpone con este nuevo tour.
+    - Flujo: En lugar de confirmar la reserva, el sistema muestra una alerta (modal o banner) con el mensaje: "Conflicto de horario detectado. Ya tienes reservado: [nombre del tour en conflicto] de [hora inicio] a [hora fin]. No puedes confirmar esta reserva". No se procesa la reserva. El usuario cierra la alerta. (Para simular este caso en el prototipo, puedes crear un tour específico que tenga horario conflictivo con una reserva de ejemplo predefinida).
+
+11. HU-41 – Consulta de turistas en tour por el guía
+    - Rol: Guía turístico autenticado
+    - Punto de entrada: Panel del guía → sección "Mis tours" → seleccionar un tour asignado que tenga reservas confirmadas
+    - Flujo: En el detalle del tour, mostrar: "Número de turistas confirmados: X" y debajo un listado con los nombres completos de los turistas. (No mostrar datos de contacto).
+
+12. HU-52 – Descarga de factura en PDF
+    - Rol: Turista autenticado
+    - Punto de entrada: Panel del turista → sección "Mis facturas" → sobre una factura en estado "Emitida", botón "Descargar PDF"
+    - Flujo: Al hacer clic, simular la descarga de un archivo PDF. En Figma Make, puedes generar una vista previa o un mensaje "PDF generado: factura_123.pdf". El PDF debe contener (simulado en texto): número de factura, nombre del tour, fecha, valor, estado "Emitida" y datos del turista (nombre, correo). No implementar librería real, solo la simulación de la acción de descarga.
+
+IMPORTANTE: No agregues pantallas de error, no muestres validaciones de campos vacíos, no implementes comprobaciones de formato, ni mensajes de "correo duplicado", "NIT inválido", "certificado vencido", etc. Solo el camino feliz donde todo sale bien. Tampoco modifiques las pantallas existentes fuera de estas adiciones. Respeta la arquitectura de navegación actual del prototipo.
+
+Entregable: el prototipo actualizado con estas 12 HU funcionando en sus flujos principales.
